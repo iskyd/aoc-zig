@@ -1,4 +1,5 @@
 const std = @import("std");
+const assert = std.debug.assert;
 
 pub const FileReader = struct {
     allocator: std.mem.Allocator,
