@@ -70,6 +70,7 @@ pub fn main() !void {
     defer reader.deinit();
 
     var hm = std.AutoHashMap(usize, std.ArrayList(usize)).init(allocator);
+    defer hm.deinit();
 
     const rows = reader.rows("\n");
     const cols = reader.cols("\n");
