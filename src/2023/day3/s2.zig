@@ -69,11 +69,7 @@ pub fn main() !void {
     const reader = try FileReader.init(allocator, fullpath);
     defer reader.deinit();
 
-    var numbers = std.ArrayList(u16).init(allocator); // numbers near a gear
-    var gears = std.ArrayList(usize).init(allocator); // gear positions
-    var hm = std.AutoHashMap(usize, usize).init(allocator);
-    defer numbers.deinit();
-    defer gears.deinit();
+    var hm = std.AutoHashMap(usize, std.ArrayList(usize)).init(allocator);
 
     const rows = reader.rows("\n");
     const cols = reader.cols("\n");
@@ -94,14 +90,12 @@ pub fn main() !void {
                     const gear = gearPosition(reader.data, rows, cols, start.?, end.?);
                     if (gear != null) {
                         const n = std.fmt.parseInt(u16, reader.data[start.? .. end.? + 1], 10) catch unreachable;
-                        numbers.append(n) catch unreachable;
-                        gears.append(gear.?) catch unreachable;
                         var v = try hm.getOrPut(gear.?);
                         if (v.found_existing == false) {
-                            v.value_ptr.* = 1;
-                        } else {
-                            v.value_ptr.* += 1;
+                            v.value_ptr.* = std.ArrayList(usize).init(allocator);
+                            defer v.value_ptr.*.deinit();
                         }
+                        v.value_ptr.*.append(n) catch unreachable;
                     }
                 }
 
@@ -114,14 +108,12 @@ pub fn main() !void {
     var result: u32 = 0;
     var keyIter = hm.keyIterator();
     while (keyIter.next()) |key| {
-        if (hm.get(key.*) == 2) {
-            var ratio: u32 = 1;
-            for (0..numbers.items.len) |i| {
-                if (gears.items[i] == key.*) {
-                    ratio *= numbers.items[i];
-                }
+        var v = hm.get(key.*);
+        if (v != null) {
+            if (v.?.items.len == 2) {
+                var ratio: u32 = @intCast(v.?.items[0] * v.?.items[1]);
+                result += ratio;
             }
-            result += ratio;
         }
     }
 
