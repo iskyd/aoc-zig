@@ -14,6 +14,27 @@ pub const FileReader = struct {
     pub fn deinit(self: FileReader) void {
         self.allocator.free(self.data);
     }
+
+    pub fn rows(self: FileReader, delimiter: []const u8) u16 {
+        var result: u16 = 1;
+        for (0..self.data.len) |i| {
+            if (self.data[i] == delimiter[0]) {
+                result += 1;
+            }
+        }
+        return result;
+    }
+
+    pub fn cols(self: FileReader, delimiter: []const u8) u16 {
+        var result: u16 = 0;
+        for (0..self.data.len) |i| {
+            result += 1;
+            if (self.data[i] == delimiter[0]) {
+                return result;
+            }
+        }
+        unreachable;
+    }
 };
 
 pub const DelimiterFileWrapIterator = struct {

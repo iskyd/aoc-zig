@@ -1,8 +1,8 @@
 const std = @import("std");
+const ascii = std.ascii;
 const utils = @import("../../utils.zig");
 const FileReader = utils.FileReader;
 const DelimiterFileWrapIterator = utils.DelimiterFileWrapIterator;
-const ascii = @import("std").ascii;
 
 pub fn getCalibrationValue(text: []const u8) u8 {
     var first: ?u8 = null;
