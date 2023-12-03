@@ -4,17 +4,17 @@ const utils = @import("../../utils.zig");
 const FileReader = utils.FileReader;
 const DelimiterFileWrapIterator = utils.DelimiterFileWrapIterator;
 
-fn nearSymbol(text: []const u8, rows: u16, cols: u16, start: usize, end: usize) bool {
+fn gearPosition(text: []const u8, rows: u16, cols: u16, start: usize, end: usize) ?usize {
     _ = rows;
     if (start >= 1) {
-        if (text[start - 1] != '.' and text[start - 1] != '\n') {
-            return true;
+        if (text[start - 1] == '*') {
+            return start - 1;
         }
     }
 
     if (end < text.len) {
-        if (text[end + 1] != '.' and text[end + 1] != '\n') {
-            return true;
+        if (text[end + 1] == '*') {
+            return end + 1;
         }
     }
 
@@ -29,8 +29,8 @@ fn nearSymbol(text: []const u8, rows: u16, cols: u16, start: usize, end: usize) 
         }
 
         for (ss..es) |i| {
-            if (text[i] != '.' and text[i] != '\n') {
-                return true;
+            if (text[i] == '*') {
+                return i;
             }
         }
     }
@@ -46,13 +46,13 @@ fn nearSymbol(text: []const u8, rows: u16, cols: u16, start: usize, end: usize) 
         }
 
         for (ss..es) |i| {
-            if (text[i] != '.' and text[i] != '\n') {
-                return true;
+            if (text[i] == '*') {
+                return i;
             }
         }
     }
 
-    return false;
+    return null;
 }
 
 pub fn main() !void {
@@ -69,7 +69,12 @@ pub fn main() !void {
     const reader = try FileReader.init(allocator, fullpath);
     defer reader.deinit();
 
-    var result: u32 = 0;
+    var numbers = std.ArrayList(u16).init(allocator); // numbers near a gear
+    var gears = std.ArrayList(usize).init(allocator); // gear positions
+    var hm = std.AutoHashMap(usize, usize).init(allocator);
+    defer numbers.deinit();
+    defer gears.deinit();
+
     const rows = reader.rows("\n");
     const cols = reader.cols("\n");
     for (0..rows) |row| {
@@ -86,17 +91,37 @@ pub fn main() !void {
                 end = idx;
             } else {
                 if (start != null and end != null) {
-                    // Parse the number and check if it's near a symbol
-                    if (nearSymbol(reader.data, rows, cols, start.?, end.?)) {
-                        std.debug.print("Found {s} at {d}..{d}\n", .{ reader.data[start.? .. end.? + 1], start.?, end.? });
+                    const gear = gearPosition(reader.data, rows, cols, start.?, end.?);
+                    if (gear != null) {
                         const n = std.fmt.parseInt(u16, reader.data[start.? .. end.? + 1], 10) catch unreachable;
-                        result += n;
+                        numbers.append(n) catch unreachable;
+                        gears.append(gear.?) catch unreachable;
+                        var v = try hm.getOrPut(gear.?);
+                        if (v.found_existing == false) {
+                            v.value_ptr.* = 1;
+                        } else {
+                            v.value_ptr.* += 1;
+                        }
                     }
                 }
 
                 start = null;
                 end = null;
             }
+        }
+    }
+
+    var result: u32 = 0;
+    var keyIter = hm.keyIterator();
+    while (keyIter.next()) |key| {
+        if (hm.get(key.*) == 2) {
+            var ratio: u32 = 1;
+            for (0..numbers.items.len) |i| {
+                if (gears.items[i] == key.*) {
+                    ratio *= numbers.items[i];
+                }
+            }
+            result += ratio;
         }
     }
 
