@@ -94,7 +94,6 @@ pub fn main() !void {
                         var v = try hm.getOrPut(gear.?);
                         if (v.found_existing == false) {
                             v.value_ptr.* = std.ArrayList(usize).init(allocator);
-                            defer v.value_ptr.*.deinit();
                         }
                         v.value_ptr.*.append(n) catch unreachable;
                     }
@@ -103,6 +102,13 @@ pub fn main() !void {
                 start = null;
                 end = null;
             }
+        }
+    }
+
+    defer {
+        var it = hm.valueIterator();
+        while (it.next()) |list| {
+            list.deinit();
         }
     }
 

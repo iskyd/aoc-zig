@@ -88,7 +88,6 @@ pub fn main() !void {
                 if (start != null and end != null) {
                     // Parse the number and check if it's near a symbol
                     if (nearSymbol(reader.data, rows, cols, start.?, end.?)) {
-                        std.debug.print("Found {s} at {d}..{d}\n", .{ reader.data[start.? .. end.? + 1], start.?, end.? });
                         const n = std.fmt.parseInt(u16, reader.data[start.? .. end.? + 1], 10) catch unreachable;
                         result += n;
                     }
