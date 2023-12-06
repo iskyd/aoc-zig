@@ -19,7 +19,7 @@ fn addSeeds(seeds: *std.ArrayList(u32), line: []const u8) void {
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
-    // defer std.debug.assert(gpa.deinit() == .ok);
+    defer std.debug.assert(gpa.deinit() == .ok);
 
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
@@ -37,7 +37,6 @@ pub fn main() !void {
     var seeds = std.ArrayList(u32).init(allocator);
     defer seeds.deinit();
     addSeeds(&seeds, iterator.next().?);
-    // var mappings = std.ArrayList(std.AutoHashMap(u32, u32)).init(allocator);
     var mappings = std.ArrayList(std.ArrayList(Mapping)).init(allocator);
     defer mappings.deinit();
     while (iterator.next()) |section| {
