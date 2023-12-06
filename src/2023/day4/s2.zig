@@ -91,12 +91,9 @@ pub fn main() !void {
 
     var result: u32 = 0;
     while (q.removeOrNull()) |s| {
-        // std.debug.print("Processing card number {d}\n", .{s.cn});
         const n = getWinnings(s);
-        // std.debug.print("Find {d} winnings\n", .{n});
         if (n > 0) {
             for (s.cn + 1..s.cn + n + 1) |i| {
-                // std.debug.print("Adding card number {d}\n", .{i});
                 q.add(hm.get(@as(u16, @intCast(i))).?) catch unreachable;
             }
         }
