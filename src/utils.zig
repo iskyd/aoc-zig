@@ -63,3 +63,43 @@ pub const DelimiterFileWrapIterator = struct {
         return result;
     }
 };
+
+pub fn LineNumberTextIterator(comptime K: type) type {
+    return struct {
+        text: []const u8,
+        current: u64,
+
+        pub fn init(text: []const u8) LineNumberTextIterator(K) {
+            return LineNumberTextIterator(K){ .text = text, .current = 0 };
+        }
+
+        pub fn next(self: *LineNumberTextIterator(K)) ?K {
+            if (self.text.len == 0 or self.current >= self.text.len) {
+                return null;
+            }
+
+            var start = self.current;
+            while (true) {
+                if (self.text[start] == '\n') {
+                    return null;
+                } else if (self.text[start] == ' ') {
+                    start += 1;
+                } else {
+                    break;
+                }
+            }
+            var end = start;
+            while (true) {
+                if (self.text.len == end) {
+                    break;
+                } else if (std.ascii.isDigit(self.text[end])) {
+                    end += 1;
+                } else {
+                    break;
+                }
+            }
+            self.current = end + 1;
+            return std.fmt.parseInt(K, self.text[start..end], 10) catch unreachable;
+        }
+    };
+}
