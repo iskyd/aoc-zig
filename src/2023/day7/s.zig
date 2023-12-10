@@ -102,7 +102,7 @@ fn lessThan(context: void, lhs: Hand, rhs: Hand) bool {
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
-    // defer std.debug.assert(gpa.deinit() == .ok);
+    defer std.debug.assert(gpa.deinit() == .ok);
 
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
@@ -127,13 +127,12 @@ pub fn main() !void {
         hands.append(Hand{ .bid = bid, .cards = copied }) catch unreachable;
     }
     var slice = hands.toOwnedSlice() catch unreachable;
-    // defer {
-    //     for (slice) |hand| {
-    //         allocator.free(hand.cards);
-    //     }
-    // }
-    defer hands.deinit(); // Not necessary to call since toOwnedSlice empty the ArrayList
     defer allocator.free(slice);
+    defer {
+        for (slice) |hand| {
+            allocator.free(hand.cards);
+        }
+    }
     var result: u32 = 0;
     std.mem.sort(Hand, slice, {}, lessThan);
     for (slice, 1..) |hand, i| {
