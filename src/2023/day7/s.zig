@@ -9,10 +9,16 @@ const Hand = struct {
     cards: []u8,
 };
 
-fn convert(card: u8) u8 {
+fn convert(card: u8, joker: bool) u8 {
     switch (card) {
         'T' => return 10,
-        'J' => return 11,
+        'J' => {
+            if (joker == false) {
+                return 11;
+            } else {
+                return 1;
+            }
+        },
         'Q' => return 12,
         'K' => return 13,
         'A' => return 14,
@@ -84,6 +90,22 @@ fn handsPoint(hand: []u8) u8 {
     }
 }
 
+fn handsPointWithJoker(hand: []u8) u8 {
+    var output: [5]u8 = undefined;
+    const replacements = [13]u8{ '1', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'Q', 'K', 'A' };
+    var max: u8 = 0;
+    for (0..13) |i| {
+        var r: [1]u8 = undefined;
+        r[0] = replacements[i];
+        _ = std.mem.replace(u8, hand, "J", &r, &output);
+        var point = handsPoint(&output);
+        if (point > max) {
+            max = point;
+        }
+    }
+    return max;
+}
+
 fn lessThan(context: void, lhs: Hand, rhs: Hand) bool {
     _ = context;
     var p1: u8 = handsPoint(lhs.cards);
@@ -92,8 +114,23 @@ fn lessThan(context: void, lhs: Hand, rhs: Hand) bool {
         return p1 < p2;
     }
     for (0..5) |i| {
-        if (convert(lhs.cards[i]) != convert(rhs.cards[i])) {
-            return convert(lhs.cards[i]) < convert(rhs.cards[i]);
+        if (convert(lhs.cards[i], false) != convert(rhs.cards[i], false)) {
+            return convert(lhs.cards[i], false) < convert(rhs.cards[i], false);
+        }
+    }
+    unreachable;
+}
+
+fn lessThanWithJoker(context: void, lhs: Hand, rhs: Hand) bool {
+    _ = context;
+    var p1: u8 = handsPointWithJoker(lhs.cards);
+    var p2: u8 = handsPointWithJoker(rhs.cards);
+    if (p1 != p2) {
+        return p1 < p2;
+    }
+    for (0..5) |i| {
+        if (convert(lhs.cards[i], true) != convert(rhs.cards[i], true)) {
+            return convert(lhs.cards[i], true) < convert(rhs.cards[i], true);
         }
     }
     unreachable;
@@ -139,5 +176,12 @@ pub fn main() !void {
         result += hand.bid * @as(u32, @intCast(i));
     }
 
+    var result2: u32 = 0;
+    std.mem.sort(Hand, slice, {}, lessThanWithJoker);
+    for (slice, 1..) |hand, i| {
+        result2 += hand.bid * @as(u32, @intCast(i));
+    }
+
     std.debug.print("Result: {d}\n", .{result});
+    std.debug.print("Result 2: {d}\n", .{result2});
 }
