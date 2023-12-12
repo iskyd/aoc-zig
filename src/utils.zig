@@ -92,7 +92,7 @@ pub fn LineNumberTextIterator(comptime K: type) type {
             while (true) {
                 if (self.text.len == end) {
                     break;
-                } else if (std.ascii.isDigit(self.text[end])) {
+                } else if (std.ascii.isDigit(self.text[end]) or self.text[end] == '-') {
                     end += 1;
                 } else {
                     break;
