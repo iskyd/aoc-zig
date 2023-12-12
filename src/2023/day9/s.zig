@@ -8,7 +8,7 @@ const LineNumberTextIterator = utils.LineNumberTextIterator;
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
-    // defer std.debug.assert(gpa.deinit() == .ok);
+    defer std.debug.assert(gpa.deinit() == .ok);
 
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
@@ -28,6 +28,7 @@ pub fn main() !void {
     while (iterator.next()) |line| {
         var nit = LineNumberTextIterator(i64).init(line);
         var l = std.ArrayList(std.ArrayList(i64)).init(allocator);
+        defer l.deinit();
         var l1 = std.ArrayList(i64).init(allocator);
         while (nit.next()) |n| {
             l1.append(n) catch unreachable;
@@ -50,6 +51,13 @@ pub fn main() !void {
                 break;
             }
         }
+
+        defer {
+            for (l.items) |*item| {
+                item.deinit();
+            }
+        }
+
         l.items[l.items.len - 1].append(0) catch unreachable;
         var prevision: i64 = 0;
         for (1..l.items.len) |i| {
