@@ -24,6 +24,7 @@ pub fn main() !void {
 
     var iterator = DelimiterFileWrapIterator.init(reader.data, "\n");
     var result: i64 = 0;
+    var result2: i64 = 0;
     while (iterator.next()) |line| {
         var nit = LineNumberTextIterator(i64).init(line);
         var l = std.ArrayList(std.ArrayList(i64)).init(allocator);
@@ -56,7 +57,15 @@ pub fn main() !void {
             prevision += ci.items[ci.items.len - 1];
         }
         result += prevision;
+
+        var bprevision: i64 = 0;
+        for (1..l.items.len) |i| {
+            var ci: std.ArrayList(i64) = l.items[l.items.len - i - 1];
+            bprevision = ci.items[0] - bprevision;
+        }
+        result2 += bprevision;
     }
 
     std.debug.print("Result: {d}\n", .{result});
+    std.debug.print("Result 2: {d}\n", .{result2});
 }
