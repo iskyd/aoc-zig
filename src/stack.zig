@@ -1,10 +1,11 @@
 const std = @import("std");
 
-pub fn Queue(comptime K: type) type {
+pub fn Stack(comptime K: type) type {
     return struct {
-        const Self = @This();
         items: std.ArrayList(K),
         allocator: std.mem.Allocator,
+
+        const Self = @This();
 
         pub fn init(allocator: std.mem.Allocator) Self {
             return .{
@@ -14,19 +15,19 @@ pub fn Queue(comptime K: type) type {
         }
 
         pub fn deinit(self: Self) void {
-            self.items.deinit();
+            self.allocator.free(self.items);
+            self.items = undefined;
         }
 
-        pub fn enqueue(self: *Self, item: K) !void {
+        pub fn push(self: *Self, item: K) void {
             try self.items.append(item);
         }
 
-        pub fn dequeue(self: *Self) ?K {
-            if (self.items.items.len == 0) {
+        pub fn pop(self: *Self) ?K {
+            if (self.items.len == 0) {
                 return null;
             }
-            var item = self.items.orderedRemove(0);
-            return item;
+            return self.items.pop();
         }
     };
 }
