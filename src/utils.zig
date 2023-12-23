@@ -103,3 +103,11 @@ pub fn LineNumberTextIterator(comptime K: type) type {
         }
     };
 }
+
+pub fn minUsize(a: usize, b: usize) usize {
+    if (a < b) {
+        return a;
+    } else {
+        return b;
+    }
+}
