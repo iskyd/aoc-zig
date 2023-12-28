@@ -62,6 +62,10 @@ pub const DelimiterFileWrapIterator = struct {
         self.current = self.current + delimiterIndex.? + self.delimiter.len;
         return result;
     }
+
+    pub fn reset(self: *DelimiterFileWrapIterator) void {
+        self.current = 0;
+    }
 };
 
 pub fn LineNumberTextIterator(comptime K: type) type {
